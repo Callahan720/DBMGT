@@ -9,7 +9,7 @@ where aid in (	select aid
 	      )
 
 --Question 2
-select pid 
+select distinct pid
 from orders
 where aid in (	select aid 
 		from orders
