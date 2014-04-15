@@ -1,0 +1,126 @@
+﻿Kevin Callahan
+4/14/2014 
+
+
+SQL create statements
+
+
+DROP TABLE IF EXISTS crews;
+DROP TABLE IF EXISTS catalog;
+DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS parts;
+DROP TABLE IF EXISTS systems;
+DROP TABLE IF EXISTS astronauts;
+DROP TABLE IF EXISTS flightControlOperators;
+DROP TABLE IF EXISTS engineers;
+DROP TABLE IF EXISTS spacecrafts;
+DROP TABLE IF EXISTS people;
+
+
+
+
+-- People --
+CREATE TABLE people (
+  pid       integer not null,
+  fname     text,
+  lname     text,
+  age       integer,
+ primary key(pid)
+);
+
+
+-- Engineers --
+CREATE TABLE engineers(
+  pid                    integer not null references people(pid),
+  highestEarnedDegree    text,
+  favoriteVideoGame      text,
+ primary key(pid)
+);
+
+
+-- FlightControlOperators --
+CREATE TABLE flightControlOperators (
+  pid              integer not null references people(pid),
+  chairPreference  text,
+  drinkPreference  text,
+ primary key(pid)
+);
+
+
+-- Astronauts --
+CREATE TABLE astronauts (
+  pid             integer not null references people(pid),
+  yearsFlying     date,
+  golfHandicap    integer,
+ primary key(pid)
+);
+
+
+
+
+
+
+
+
+-- Spacecrafts --
+CREATE TABLE spacecrafts (
+  sid              integer not null,
+  craftName        text,
+  tailNumber       integer,
+  weightInTon      numeric(15,5),
+  fuelType         text,
+  crewCapacity     integer,
+ primary key(sid)
+);
+
+
+-- Systems --
+CREATE TABLE systems(
+  sysId           interger not null
+  sid             integer not null references spacecrafts(sid),
+  sysName         text,
+  sysDesc         text,
+ primary key(sysId)
+);
+
+
+-- Parts --
+CREATE TABLE systems(
+  partId           interger not null
+  sysId            integer not null references systems(sysId),
+  partName         text,
+  partDesc         text,
+ primary key(partId)
+);
+
+
+-- Suppliers --
+CREATE TABLE suppliers (
+  supplyId         integer not null,
+  supplyName       text,
+  address          text,
+  paymentTerms     text,
+ primary key(supplyId)
+);
+
+
+-- Crews --
+CREATE TABLE crews (
+  pid   integer not null references people(pid),
+  sid   integer not null references spacecrafts(sid),
+ primary key(pid, sid)
+);
+
+
+
+
+
+
+
+
+-- Catalog --
+CREATE TABLE catalog (
+  partId     integer not null references people(partId),
+  supplyId   integer not null references suppliers(supplyId),
+ primary key(partId, supplyId)
+);
