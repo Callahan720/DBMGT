@@ -1,0 +1,419 @@
+--Kevin Callahan
+--FTL Database
+--DBMGT
+
+
+DROP TABLE IF EXISTS startingSystems ;
+DROP TABLE IF EXISTS startingDrones ;
+DROP TABLE IF EXISTS startingAugmentation ;
+DROP TABLE IF EXISTS startingCrews ;
+DROP TABLE IF EXISTS startingWeapons ;
+DROP TABLE IF EXISTS shipClasses ;
+DROP TABLE IF EXISTS layouts ;
+DROP TABLE IF EXISTS augmentations ;
+DROP TABLE IF EXISTS defensiveDrones ; 
+DROP TABLE IF EXISTS crewDrones ;
+DROP TABLE IF EXISTS combatDrones ;
+DROP TABLE IF EXISTS boardingDrones ;
+DROP TABLE IF EXISTS drones ;
+DROP TABLE IF EXISTS systems ;
+DROP TABLE IF EXISTS bombWeapons ;
+DROP TABLE IF EXISTS beamWeapons ;
+DROP TABLE IF EXISTS missileWeapons ;
+DROP TABLE IF EXISTS laserWeapons ;
+DROP TABLE IF EXISTS weapons ;
+DROP TABLE IF EXISTS races ;
+
+-- Create --
+
+-- Races --
+CREATE TABLE races (
+  rid                  integer not null,
+  name                 text,
+  costScrap            integer,
+  health               integer,
+  repair               real,
+  damage               real,
+  movement             real,
+  specialDescription   text,
+ primary key(rid)
+);
+
+
+-- Weapons --
+CREATE TABLE weapons (
+  wid            integer not null,
+  name           text,
+  power          integer,
+  cooldownSec    integer,
+  fire           integer,
+  breach         integer,
+  costScrap      integer,
+  rarity         integer,
+ primary key(wid)
+);
+
+-- Laser Weapons --
+CREATE TABLE laserWeapons (
+  wid          integer not null references weapons(wid),
+  damage       text,
+  speed        integer,
+ primary key(wid)
+);
+
+-- Missile Weapons --
+CREATE TABLE missileWeapons (
+  wid          integer not null references weapons(wid),
+  damage       text,
+  stun         integer,
+ primary key(wid)
+);
+
+-- Beam Weapons --
+CREATE TABLE beamWeapons (
+  wid            integer not null references weapons(wid),
+  damagePerRoom  text,
+  beamLength     integer,
+ primary key(wid)
+);
+
+-- Bomb Weapons --
+CREATE TABLE bombWeapons (
+  wid              integer not null references weapons(wid),
+  damagePersonnel  integer,
+  damageSystem     integer,
+ primary key(wid)
+);
+
+
+-- Systems Type --
+CREATE TYPE sysType AS ENUM ('MainSystem', 'Subsystem');
+-- Systems --
+CREATE TABLE systems (
+  sysId           integer not null,
+  name            text,
+  description     text,
+  type            sysType,
+  mannedBonus     boolean,
+  maxPower        integer,
+  costScrap       integer,
+ primary key(sysId)
+);
+
+
+-- Drones --
+CREATE TABLE drones (
+  did             integer not null,
+  name            text,
+  description     text,
+  costScrap       integer,
+  energyReq       integer,
+ primary key(did)
+);
+
+-- Boarding Drones --
+CREATE TABLE boardingDrones (
+  did          integer not null references drones(did),
+  health       text,
+ primary key(did)
+);
+
+-- Combat Drones --
+CREATE TABLE combatDrones (
+  did          integer not null references drones(did),
+  speed        integer,
+ primary key(did)
+);
+
+-- Crew Drones --
+CREATE TABLE crewDrones (
+  did          integer not null references drones(did),
+ primary key(did)
+);
+
+-- Defensive Drones --
+CREATE TABLE defensiveDrones (
+  did          integer not null references drones(did),
+  cooldownSec  real,
+ primary key(did)
+);
+
+
+-- Augmentation Type --
+CREATE TYPE augType AS ENUM ('Weapon', 'Defensive', 'FTL', 'Misc', 'Non-Purchasable');
+-- Augmentations --
+CREATE TABLE augmentations (
+  aid             integer not null,
+  name            text,
+  description     text,
+  type            augType,
+  costScrap       integer,
+  sellValScrap    integer,
+ primary key(aid)
+);
+
+
+-- Layouts --
+CREATE TABLE layouts (
+  sid                 integer not null,
+  name                text not null unique,
+  fuelStarting        integer,
+  missileStarting     integer,
+  dronePartsStarting  integer,
+  weaponSlots         integer,
+  droneSlots          integer,
+ primary key(sid)
+);
+
+-- Ship Classes --
+CREATE TABLE shipClasses (
+  sid           integer not null references layouts(sid),
+  name          text not null,
+ primary key(sid)
+);
+
+-- Starting Weapons --
+CREATE TABLE startingWeapons (
+  sid       integer not null references layouts(sid),
+  wid       integer not null references weapons(wid),
+  quantity  integer not null,
+ primary key(sid, wid)
+);
+
+-- Starting Crews --
+CREATE TABLE startingCrews (
+  sid       integer not null references layouts(sid),
+  rid       integer not null references races(rid),
+  quantity  integer not null,
+ primary key(sid, rid)
+);
+
+-- Starting Augmentation --
+CREATE TABLE startingAugmentation (
+  sid       integer not null references layouts(sid),
+  aid       integer not null references augmentations(aid),
+  quantity  integer not null,
+ primary key(sid, aid)
+);
+
+-- Starting Drones --
+CREATE TABLE startingDrones (
+  sid       integer not null references layouts(sid),
+  did       integer not null references drones(did),
+  quantity  integer not null,
+ primary key(sid, did)
+);
+
+-- Starting Systems --
+CREATE TABLE startingSystems (
+  sid   integer not null references layouts(sid),
+  sysId   integer not null references systems(sysId),
+ primary key(sid, sysId)
+);
+
+
+
+-- Inserts --
+
+-- Races --
+INSERT INTO races( rid, name, costScrap, health, repair, damage, movement, specialDescription )
+  VALUES  (01, 'Humans', 45, 100, 1, 1, 1, '-10% experience requirements'),
+          (02, 'Engi', 50, 100, 2, 0.5, 1, ''),
+          (03, 'Mantis', 55, 100, 0.5, 1.5, 1.2, ''),
+          (04, 'Rockmen', 55, 150, 1, 1, 0.5, 'Immune to fire'),
+          (05, 'Zoltan', 60, 70, 1, 1, 1, 'Adds 1 power to occupied system, explodes on death'),
+          (06, 'Slug', 55, 100, 1, 1, 1, 'Reveals adjacent rooms and crew of enemy ships'),
+          (07, 'Crystal', 65, 125, 1, 1, 0.8, 'Lockdown power, -50% suffocation damage');
+
+-- Weapons --
+INSERT INTO weapons( wid, name, power, cooldownSec, fire, breach, costScrap, rarity )
+  VALUES  (01, 'Basic Laser', 1, 10, 1, 0, 20, 0),
+          (02, 'Burst Laser II', 2, 12, 1, 0, 80, 4),
+          (03, 'Heavy Laser I', 1, 9, 3, 3, 55, 2),
+          (04, 'Heavy Ion', 2, 13, 0, 0, 40, 3),
+          (05, 'Ion Blast II', 3, 4, 0, 0, 80, 4),
+          (06, 'Artemis', 1, 11, 1, 1, 38, 0),
+          (07, 'Pike Beam', 2, 16, 0, 0, 60, 2),
+          (08, 'Healing Burst', 1, 18, 0, 0, 40, 3);
+
+-- Laser Weapons --
+INSERT INTO laserWeapons( wid, damage, speed )
+  VALUES  (01, '1', 60),
+          (02, '3x1', 60),
+          (03, '2', 60),
+          (04, '2 Ion', 40),
+          (05, '1 Ion', 30);
+
+-- Missile Weapons --
+INSERT INTO missileWeapons( wid, damage, stun )
+  VALUES  (06, '2', 0);
+
+-- Beam Weapons --
+INSERT INTO beamWeapons( wid, damagePerRoom, beamLength )
+  VALUES  (07, '1', 170);
+
+-- Bomb Weapons --
+INSERT INTO bombWeapons( wid, damagePersonnel, damageSystem )
+  VALUES  (08, -150, 0);
+
+-- Systems --
+INSERT INTO systems( sysId, name, description, type, mannedBonus, maxPower, costScrap )
+  VALUES  (01, 'Shields', 'Projects a protective barrier around your ship', 'MainSystem', TRUE, 8, 125),
+          (02, 'Medbay', 'Heals all crew members inside', 'MainSystem', FALSE, 3, 60),
+          (03, 'Sensors', 'Reveals the interior of your ship', 'Subsystem', TRUE, 3, 40);
+
+-- Drones --
+INSERT INTO drones( did, name, description, costScrap, energyReq )
+  VALUES  (01, 'Combat Drone Mark I', 'Continually attacks the enemy ship with a single laser blast', 50, 2),
+          (02, 'Anti-Personnel Drone', 'Attacks hostile boarding crews', 60, 2),
+          (03, 'System Repair Drone', 'Will seek out damaged systems and repair them automatically', 30, 1),
+          (04, 'Defense Drone Mark I', 'Shoots down incoming missiles and asteroids', 50, 2),
+          (05, 'Boarding Drone', 'Attacks crewmen on the target ship', 70, 3);
+
+-- Boarding Drones --
+INSERT INTO boardingDrones( did, health )
+  VALUES  (05, 150);
+
+-- Combat Drones --
+INSERT INTO combatDrones( did, speed )
+  VALUES  (01, 15);
+
+-- Crew Drones --
+INSERT INTO crewDrones( did )
+  VALUES  (02),
+          (03);
+
+-- Defensive Drones --
+INSERT INTO defensiveDrones( did, cooldownSec )
+  VALUES  (04, 1);
+
+-- Augmentations --
+INSERT INTO augmentations( aid, name, description, type, costScrap, sellValScrap )
+  VALUES  (01, 'Engi Med-bot Dispersal', 'Heals the crew even when they are outside of the med-bay', 'Non-Purchasable', 0, 30),
+          (02, 'Drone Reactor Booster', 'Onboard drones have their movement speed increased by 25 percent', 'Non-Purchasable', 0, 25);
+
+-- Layouts --
+INSERT INTO layouts( sid, name, fuelStarting, missileStarting, dronePartsStarting, weaponSlots, droneSlots )
+  VALUES  (01, 'The Kestrel', 16, 8, 0, 4, 2 ),
+          (02, 'Red-Tail', 16, 5, 0, 4, 2 ),
+          (03, 'The Torus', 16, 0, 15, 3, 3 ),
+          (04, 'The Vortex', 16, 0, 6, 3, 3 );
+
+-- Ship Classes --
+INSERT INTO shipClasses( sid, name )
+  VALUES  (01, 'Kestrel Cruiser' ),
+          (02, 'Kestrel Cruiser' ),
+          (03, 'Engi Cruiser' ),
+          (04, 'Engi Cruiser' );
+
+-- Starting Weapons --
+INSERT INTO startingWeapons( sid, wid, quantity )
+  VALUES  (01, 02, 1),
+          (01, 06, 1),
+          (02, 01, 4),
+          (03, 05, 1),
+          (04, 04, 1),
+          (04, 03, 1);
+
+-- Starting Crews --
+INSERT INTO startingCrews( sid, rid, quantity )
+  VALUES  (01, 01, 3),
+          (02, 01, 2),
+          (02, 03, 1),
+          (02, 05, 1),
+          (03, 02, 2),
+          (03, 01, 1),
+          (04, 02, 1);
+
+-- Starting Augmentation --
+INSERT INTO startingAugmentation( sid, aid, quantity )
+  VALUES  (02, 01, 1),
+          (02, 02, 1);
+
+-- Starting Drones --
+INSERT INTO startingDrones( sid, did, quantity )
+  VALUES  (02, 01, 1),
+          (02, 02, 1),
+          (02, 03, 2);
+
+-- Starting Systems --
+INSERT INTO startingSystems( sid, sysId )
+  VALUES  (01, 01),
+          (01, 02),
+          (01, 03),
+          (02, 01),
+          (02, 02),
+          (02, 03),
+          (03, 01),
+          (03, 02),
+          (03, 03),
+          (04, 01),
+          (04, 02),
+          (04, 03);
+
+
+
+-- Views --
+
+CREATE VIEW DronesComplete
+AS
+SELECT d.did, d.name, d.description, d.costScrap, d.energyReq, bd.health, cd.speed, dd.cooldownSec
+FROM drones d, boardingDrones bd, combatDrones cd, crewDrones crd, defensiveDrones dd
+WHERE d.did = bd.did OR d.did = cd.did OR d.did = crd.did Or d.did = dd.did
+ORDER BY d.name ;
+
+
+CREATE VIEW WeaponsComplete
+AS
+SELECT DISTINCT w.wid, w.name, w.power, w.cooldownSec, w.fire, w.breach, w.costScrap, w.rarity, lw.damage, lw.speed, mw.stun, bw.damagePerRoom, bw.beamLength, bow.damagePersonnel, bow.damageSystem
+FROM weapons w, laserWeapons lw, missileWeapons mw, beamWeapons bw, bombWeapons bow
+WHERE w.wid = lw.wid OR w.wid = mw.wid OR w.wid = bw.wid OR w.wid = bow.wid
+ORDER BY w.wid ;
+
+
+
+-- Queries -- 
+
+--Layouts using basic laser -- 
+
+SELECT l.sid, l.name
+FROM layouts l, startingWeapons sw, weapons w
+WHERE l.sid = sw.sid AND sw.wid = w.wid AND w.name = 'Basic Laser'
+
+
+--Layouts using Anti-Personnel Drone -- 
+
+SELECT l.sid, l.name
+FROM layouts l, startingDrones sd, drones d
+WHERE l.sid = sd.sid AND sd.did = d.did AND d.name = 'Anti-Personnel Drone'
+
+
+-- Stored Procedures --
+
+
+CREATE OR REPLACE FUNCTION SpecificWeapon(weaponName text)
+RETURNS TABLE("Layouts Id" integer, "Layouts Name" text)AS $$
+BEGIN
+RETURN QUERY SELECT l.sid AS "Layouts Id", l.name AS "Layouts Name"
+FROM layouts l, startingWeapons sw, weapons w
+WHERE w.name = weaponName AND l.sid = sw.sid AND sw.wid = w.wid 
+ORDER BY l.sid;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT SpecificWeapon('Burst Laser II');
+
+
+
+
+CREATE OR REPLACE FUNCTION SpecificDrone(droneName text)
+RETURNS TABLE("Layouts Id" integer, "Layouts Name" text)AS $$
+BEGIN
+RETURN QUERY SELECT l.sid AS "Layouts Id", l.name AS "Layouts Name"
+FROM layouts l, startingDrones sd, drones d
+WHERE d.name = droneName AND l.sid = sd.sid AND sd.did = d.did
+ORDER BY l.sid;
+END;
+$$ LANGUAGE plpgsql;
+
+Sample Data: SELECT SpecificDrone('System Repair Drone');
