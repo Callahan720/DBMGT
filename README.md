@@ -5,6 +5,6 @@ CMPT 308L Database Management Kevin Callahan
 
 Spring 2014
 
-Labs - PostgresSQL - Queries for the CAP2 Database
+Labs - PostgreSQL - Queries for the CAP2 Database
 
-FTL Design - Database Designed and Implemented for the game FTL in PostgresSQL
+FTL Design - Database Designed and Implemented for the game FTL in PostgreSQL
